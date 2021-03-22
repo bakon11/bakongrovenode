@@ -3,6 +3,10 @@ var DigitalSensor = GrovePi.sensors.base.Digital;
 var AnalogSensor = GrovePi.sensors.base.Analog;
 var Commands      = GrovePi.commands;
 var Board = GrovePi.board
+var sensorValArray = [];
+var volt_ref = 5.0;
+var k = -20.5 ;
+var offset = 42.3;
 
 var board = new Board({
     debug: true,
@@ -17,10 +21,14 @@ var board = new Board({
         var phSensor = new AnalogSensor(2);
         console.log('PH Analog Sensor (start watch)')
         phSensor.on('change', function(sensorValue) {
-	  var phValue = -19.18518519 * sensorValue * 5 / 1024 + 41.02740741;
-          console.log('Sensor Value: ' + sensorValue + " PH: " + phValue);
+	  if(sensorValue != 65535 || sensorValue != false){ sensorValArray.push(sensorValue);};
+	  var phAvg =  (eval(sensorValArray.join('+'))/sensorValArray.length);	 
+	  var voltage = phAvg * volt_ref / 1024;
+	  var phValue = k * voltage + offset;
+	  console.log(sensorValue + " " + sensorValArray);	
+          console.log('Sensor Value: ' + voltage.toFixed(2) + " PH: " + phValue.toFixed(2));
         })
-        phSensor.watch()
+        phSensor.watch(1000)
       }
     }
 })
